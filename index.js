@@ -86,4 +86,4 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-client.login('MTExMjc5NDA0MzI1MzAxMDQ4Mg.GzYq2G.1vcmObGYL7cq_JWbUOr2PMRs3Djws8VJb0kpK0');
+client.login('YOUR_BOT_TOKEN');
