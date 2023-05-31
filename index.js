@@ -1,113 +1,89 @@
+const { Client, Intents } = require('discord.js');
 
-// const { clientId, guildId, token, publicKey } = require('./config.json');
-require('dotenv').config()
-const APPLICATION_ID = process.env.APPLICATION_ID 
-const TOKEN = process.env.TOKEN 
-const PUBLIC_KEY = process.env.PUBLIC_KEY || 'not set'
-const GUILD_ID = process.env.GUILD_ID 
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
+client.on('ready', () => {
+  console.log(`Logged in as ${client.user.tag}!`);
+});
 
-const axios = require('axios')
-const express = require('express');
-const { InteractionType, InteractionResponseType, verifyKeyMiddleware } = require('discord-interactions');
-
-
-const app = express();
-// app.use(bodyParser.json());
-
-const discord_api = axios.create({
-  baseURL: 'https://discord.com/api/',
-  timeout: 3000,
-  headers: {
-	"Access-Control-Allow-Origin": "*",
-	"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-	"Access-Control-Allow-Headers": "Authorization",
-	"Authorization": `Bot ${TOKEN}`
+client.on('messageCreate', message => {
+  if (message.content === 'ping') {
+    message.reply('pong');
   }
 });
 
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isCommand()) return;
 
+  const { commandName } = interaction;
 
-
-app.post('/interactions', verifyKeyMiddleware(PUBLIC_KEY), async (req, res) => {
-  const interaction = req.body;
-
-  if (interaction.type === InteractionType.APPLICATION_COMMAND) {
-    console.log(interaction.data.name)
-    if(interaction.data.name == 'yo'){
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: {
-          content: `Yo ${interaction.member.user.username}!`,
-        },
-      });
+  if (commandName === 'yo') {
+    await interaction.reply('Yo!');
+  } else if (commandName === 'dm') {
+    await interaction.reply('I am not able to respond to DMs with slash commands.');
+  } else if (commandName === 'ban') {
+    if (!interaction.member.permissions.has('BAN_MEMBERS')) {
+      return interaction.reply('You do not have permission to use this command!');
     }
 
-    if(interaction.data.name == 'dm'){
-      // https://discord.com/developers/docs/resources/user#create-dm
-      let c = (await discord_api.post(`/users/@me/channels`,{
-        recipient_id: interaction.member.user.id
-      })).data
-      try{
-        // https://discord.com/developers/docs/resources/channel#create-message
-        let res = await discord_api.post(`/channels/${c.id}/messages`,{
-          content:'Yo! I got your slash command. I am not able to respond to DMs just slash commands.',
-        })
-        console.log(res.data)
-      }catch(e){
-        console.log(e)
+    const user = interaction.options.get('user').user;
+
+    if (user) {
+      const member = interaction.guild.members.cache.get(user.id);
+
+      if (member) {
+        await member.ban({ reason: 'Banned by the bot.' });
+        await interaction.reply(`${user.tag} was successfully banned.`);
+      } else {
+        await interaction.reply("That user isn't in this server!");
       }
+    } else {
+      await interaction.reply("You didn't mention the user to ban!");
+    }
+  } else if (commandName === 'warn') {
+    if (!interaction.member.permissions.has('KICK_MEMBERS')) {
+      return interaction.reply('You do not have permission to use this command!');
+    }
 
-      return res.send({
-        // https://discord.com/developers/docs/interactions/receiving-and-responding#responding-to-an-interaction
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data:{
-          content:'👍'
+    const user = interaction.options.get('user').user;
+
+    if (user) {
+      const member = interaction.guild.members.cache.get(user.id);
+
+      if (member) {
+        await member.send(`You have been warned in ${interaction.guild.name}.`);
+        await interaction.reply(`${user.tag} has been warned.`);
+      } else {
+        await interaction.reply("That user isn't in this server!");
+      }
+    } else {
+      await interaction.reply("You didn't mention the user to warn!");
+    }
+  } else if (commandName === 'mute-text') {
+    if (!interaction.member.permissions.has('MUTE_MEMBERS')) {
+      return interaction.reply('You do not have permission to use this command!');
+    }
+
+    const user = interaction.options.get('user').user;
+
+    if (user) {
+      const member = interaction.guild.members.cache.get(user.id);
+
+      if (member) {
+        const mutedRole = interaction.guild.roles.cache.find(role => role.name === 'Muted');
+        if (mutedRole) {
+          await member.roles.add(mutedRole);
+          await interaction.reply(`${user.tag} was successfully muted.`);
+        } else {
+          await interaction.reply('The "Muted" role does not exist. Please create it before using this command.');
         }
-      });
+      } else {
+        await interaction.reply("That user isn't in this server!");
+      }
+    } else {
+      await interaction.reply("You didn't mention the user to mute!");
     }
   }
-
 });
 
-
-
-app.get('/register_commands', async (req,res) =>{
-  let slash_commands = [
-    {
-      "name": "yo",
-      "description": "replies with Yo!",
-      "options": []
-    },
-    {
-      "name": "dm",
-      "description": "sends user a DM",
-      "options": []
-    }
-  ]
-  try
-  {
-    // api docs - https://discord.com/developers/docs/interactions/application-commands#create-global-application-command
-    let discord_response = await discord_api.put(
-      `/applications/${APPLICATION_ID}/guilds/${GUILD_ID}/commands`,
-      slash_commands
-    )
-    console.log(discord_response.data)
-    return res.send('commands have been registered')
-  }catch(e){
-    console.error(e.code)
-    console.error(e.response?.data)
-    return res.send(`${e.code} error from discord`)
-  }
-})
-
-
-app.get('/', async (req,res) =>{
-  return res.send('Follow documentation ')
-})
-
-
-app.listen(8999, () => {
-
-})
-
+client.login('MTExMjc5NDA0MzI1MzAxMDQ4Mg.GzYq2G.1vcmObGYL7cq_JWbUOr2PMRs3Djws8VJb0kpK0');
