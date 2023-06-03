@@ -83,7 +83,45 @@ client.on('interactionCreate', async interaction => {
     } else {
       await interaction.reply("You didn't mention the user to mute!");
     }
+  } else if (commandName === 'kick-role') {
+    if (!interaction.member.permissions.has('KICK_MEMBERS')) {
+      return interaction.reply('You do not have permission to use this command!');
+    }
+
+    const roleName = interaction.options.get('role').value;
+    const role = interaction.guild.roles.cache.find(r => r.name === roleName);
+
+    if (role) {
+      const membersWithRole = interaction.guild.members.cache.filter(m => m.roles.cache.has(role.id));
+
+      membersWithRole.forEach(async member => {
+        await member.kick('Kicked by the bot.');
+      });
+
+      await interaction.reply(`Kicked all members with the role "${roleName}".`);
+    } else {
+      await interaction.reply(`The role "${roleName}" does not exist.`);
+    }
+  } else if (commandName === 'ban-role') {
+    if (!interaction.member.permissions.has('BAN_MEMBERS')) {
+      return interaction.reply('You do not have permission to use this command!');
+    }
+
+    const roleName = interaction.options.get('role').value;
+    const role = interaction.guild.roles.cache.find(r => r.name === roleName);
+
+    if (role) {
+      const membersWithRole = interaction.guild.members.cache.filter(m => m.roles.cache.has(role.id));
+
+      membersWithRole.forEach(async member => {
+        await member.ban({ reason: 'Banned by the bot.' });
+      });
+
+      await interaction.reply(`Banned all members with the role "${roleName}".`);
+    } else {
+      await interaction.reply(`The role "${roleName}" does not exist.`);
+    }
   }
 });
 
-client.login('MTExMjc5NDA0MzI1MzAxMDQ4Mg.G3Pdk_.zeuXq3c8Rh2sHtHLPe7sAkkNsPO_P63wXVnxgo');
+client.login('MTExMjc5NDA0MzI1MzAxMDQ4Mg.GtqJKw.QYcBLYSnzBRARUHGCphpn1aEXEe4YULAjprpi0');
