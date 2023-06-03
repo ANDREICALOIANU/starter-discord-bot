@@ -1,4 +1,5 @@
 const { Client, Intents } = require('discord.js');
+require('dotenv').config(); // Import the dotenv package
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -124,7 +125,5 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-const config = require('./config.json');
-
-client.login(config.botToken);
+client.login(process.env.BOT_TOKEN);
 
