@@ -1,4 +1,5 @@
 const { Client, Intents } = require('discord.js');
+const fs = require('fs');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -17,8 +18,6 @@ client.on('interactionCreate', async interaction => {
 
   const { commandName } = interaction;
 
-  if (commandName === 'yo') {
-    await interaction.reply('Yo!');
   } else if (commandName === 'dm') {
     await interaction.reply('I am not able to respond to DMs with slash commands.');
   } else if (commandName === 'ban') {
@@ -86,4 +85,6 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-client.login('YOUR_BOT_TOKEN');
+const config = require('./config.json');
+client.login(config.botToken);
+
