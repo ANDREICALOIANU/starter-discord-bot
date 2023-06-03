@@ -124,4 +124,7 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-client.login('MTExMjc5NDA0MzI1MzAxMDQ4Mg.GtqJKw.QYcBLYSnzBRARUHGCphpn1aEXEe4YULAjprpi0');
+const config = require('./config.json');
+
+client.login(config.botToken);
+
